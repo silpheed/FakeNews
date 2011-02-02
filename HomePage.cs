@@ -20,11 +20,13 @@ namespace FakeNews
 			Header();		//done
 			MainItem();		//done
 			MainColumn();	//done
-			SideBar();		//done
+			SocialLinks();  //done
 			BreakingNews();	//done
+			SideBar();		//done
 			MostPopular();	//done
 			PictureRow();		//done
 			NationalAndLocal();	//done
+			Latest();		//done
 			World();		//done
 			Sport();		//done
 			Business();		//done
@@ -32,6 +34,7 @@ namespace FakeNews
 			Entertainment();	//done
 			Travel();		//done
 			Technology();	//done
+            SighFacebook();  //done
 			using (MemoryStream resultStream = new MemoryStream()) {
 				index.Save(resultStream);
 				resultStream.Position = 0;
@@ -70,13 +73,16 @@ namespace FakeNews
 		private void MainItem()
 		{
 			const string robotDog = "http://www.youtube.com/watch?v=b2bExqhhWRI";
-			HtmlNode module = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-multi-promo-main-image')]//div[contains(@class, 'module-content')]");
-			if (null == module)
-				return;
+			HtmlNode module = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-multi-promo-main-image')]//div[contains(@class, 'module-content')]") ??
+				index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-g-news-home-group-defcon-image')]//div[contains(@class, 'module-content')]") ??
+				index.DocumentNode.SelectSingleNode("//div[contains(@class, 'first-image-large')]//div[contains(@class, 'module-content')]");
+            if (null == module)
+                return;
 
-			HtmlNodeCollection links = module.SelectNodes(".//div[contains(@class, 'promo-block')]//a");
+			//HtmlNodeCollection links = module.SelectNodes(".//div[contains(@class, 'promo-block')]//a");
+			HtmlNodeCollection links = module.SelectNodes(".//a");
 			int contentIndex;
-						
+
 			for (int i = 0; i < links.Count; i++) {
 				if (i < 2) {
 					links[i].SetAttributeValue("href", robotDog);
@@ -94,14 +100,17 @@ namespace FakeNews
 					links[i].Remove();
 				}
 			}
-			HtmlNode topBlurb = module.SelectSingleNode(".//div[contains(@class, 'promo-block')]//p[1]");
+			//HtmlNode topBlurb = module.SelectSingleNode(".//div[contains(@class, 'promo-block')]//p[1]");
+			HtmlNode topBlurb = module.SelectSingleNode(".//p[1]");
 			
 			if ((blurbList.Count > 0) && (null != topBlurb)) {
 				contentIndex = rng.Next() % blurbList.Count;
 				topBlurb.InnerHtml = PrepareContent(blurbList[contentIndex]);
 				blurbList.RemoveAt(contentIndex);
 			}
-			
+
+			//remove extra bit when special features are running
+			RemoveSection("defcon-related-content");
 		}
 
 		private void MainColumn()
@@ -113,11 +122,13 @@ namespace FakeNews
 				"http://twitter.com/silpeen/status/4800570357",		//illiterate
 				"http://twitter.com/silpeen/status/11238287000",	//hey dad! strike force
 			};
-            
-			HtmlNode module = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'sectionref-newscomau-top-stories')]//div[contains(@class, 'module-content')]");
+
+			HtmlNode module = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'sectionref-newscomau-top-stories')]//div[contains(@class, 'module-content')]") ??
 			//if there's a "special feature" on, the layout may change
-			if (null == module)
-				module = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-headlines')]");
+			index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-headlines')]") ??
+			index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-also-in-the-news')]") ??
+			index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-plmt-top-stories')]") ??
+			index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-plmt-defcon-tops')]");
 			if (null == module)
 				return;
 			
@@ -141,8 +152,7 @@ namespace FakeNews
 				}
 			
 			if (null != blurbs)
-				foreach (HtmlNode item in blurbs)
-				{
+				foreach (HtmlNode item in blurbs) {
 					if (blurbList.Count == 0)
 						continue;
 					contentIndex = rng.Next() % blurbList.Count;
@@ -150,8 +160,7 @@ namespace FakeNews
 					blurbList.RemoveAt(contentIndex);
 				}
 			if (null != otherHeadlines)
-				foreach (HtmlNode item in otherHeadlines)
-				{
+				foreach (HtmlNode item in otherHeadlines) {
 					if (otherHeadlinesList.Count == 0)
 						continue;
 					contentIndex = rng.Next() % otherHeadlinesList.Count;
@@ -161,22 +170,32 @@ namespace FakeNews
 			
 		}
 
+		public void SocialLinks()
+		{
+			RemoveSection("social-links");
+		}
+
 		private void SideBar()
 		{
 			//leave WTF and horoscopes. no-one will be able to tell the difference.
 			//RemoveSection("text-m-wtf-weird-true-freakynbsp");
 			//RemoveSection("vcms-promo-widget");
+			RemoveSection("text-m-extra");
 			RemoveSection("video-widget-large");
 			RemoveSection("text-m-blogroll");
 			RemoveSection("text-m-opinion-from-the-punch");
+			RemoveSection("text-m-find");
+			RemoveSection("text-m-more");
 		}
 
 		private void BreakingNews()
 		{
-			HtmlNode module = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'sectionref-breaking-news')]");
+			//HtmlNode module = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'sectionref-breaking-news')]") ??
+			HtmlNode module = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-breaking-news')]");
 			if (null == module)
 				return;
-			HtmlNodeCollection breakingNews = module.SelectNodes(".//ul[contains(@class, 'breaking-news-list')]//a");
+
+			HtmlNodeCollection breakingNews = module.SelectNodes(".//ul[contains(@class, 'breaking-news-list') or contains(@class, 'related')]//a");
 
 			int contentIndex;
 			if (null != breakingNews)
@@ -242,7 +261,8 @@ namespace FakeNews
 
 		private void PictureRow()
 		{
-			HtmlNode mainModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-multi-promo-scrollo')]//div[contains(@class, 'module-content')]");
+			HtmlNode mainModule = null;
+			mainModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-multi-promo-scrollo')]//div[contains(@class, 'module-content')]");
 			if (null == mainModule)
 				return;
 
@@ -263,7 +283,8 @@ namespace FakeNews
 
 		private void NationalAndLocal()
 		{
-			HtmlNode leftModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-national')]//div[contains(@class, 'module-content')]");
+			HtmlNode leftModule = null;
+			leftModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-national')]//div[contains(@class, 'module-content')]");
 			if (null == leftModule)
 				return;
 
@@ -301,9 +322,15 @@ namespace FakeNews
 				}
 		}
 
+		private void Latest()
+		{
+			RemoveSection("text-m-latest");
+		}
+
 		private void Business()
 		{
 			RemoveSection("text-g-business");
+			RemoveSection("text-m-business");
 		}
 
 		private void Entertainment()
@@ -339,7 +366,10 @@ namespace FakeNews
 				"Scientology opening the world's eyes to the truth",
 			};
 
-			HtmlNode leftModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-plmt-ents-top-stories')]//div[contains(@class, 'module-content')]");
+			HtmlNode leftModule;
+			leftModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-plmt-ents-top-stories')]//div[contains(@class, 'module-content')]");
+			if (null == leftModule)
+				leftModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-entertainment')]//div[contains(@class, 'module-content')]");
 			if (null == leftModule)
 				return;
 			
@@ -347,9 +377,23 @@ namespace FakeNews
 			HtmlNode topBlurb = leftModule.SelectSingleNode(".//p[contains(@class, 'standfirst')]");
 			HtmlNodeCollection otherHeadlines = leftModule.SelectNodes(".//ul[contains(@class, 'related')]//a");
 
-			HtmlNode rightModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-entertainment-features')]//div[contains(@class, 'module-content')]");
-			HtmlNodeCollection rightHeadlines = rightModule.SelectNodes(".//h4[contains(@class, 'heading')]//a");
-			HtmlNodeCollection rightBlurbs = rightModule.SelectNodes(".//div[contains(@class, 'promo-text')]//p");
+			HtmlNode rightModule;
+			rightModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-entertainment-features')]//div[contains(@class, 'module-content')]");
+			if (null == rightModule)
+				rightModule = leftModule.SelectSingleNode("//ul[contains(@class, 'related')]//div[contains(@class, 'module-content')]");
+			//if (null == rightModule)
+			//	return;
+
+			HtmlNodeCollection rightHeadlines = null;
+			HtmlNodeCollection rightBlurbs = null;
+			if (null != rightModule) {
+				rightHeadlines = rightModule.SelectNodes(".//h4[contains(@class, 'heading')]//a");
+				if (null == rightHeadlines)
+					rightHeadlines = rightModule.SelectNodes(".//li[contains(@class, 'story')]//a");
+				//if (null == rightHeadlines)
+				//	return;
+				rightBlurbs = rightModule.SelectNodes(".//div[contains(@class, 'promo-text')]//p");
+			}
 
 			int contentIndex;
 			if ((otherHeadlinesList.Count > 0) && (null != topHeadline)) {
@@ -391,6 +435,7 @@ namespace FakeNews
 		private void Travel()
 		{
 			RemoveSection("text-g-travel");
+			RemoveSection("text-m-travel");
 		}
 
 		private void Sport()
@@ -440,16 +485,21 @@ namespace FakeNews
 			};
             
 			HtmlNode leftModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-money')]//div[contains(@class, 'module-content')]");
-			if (null == leftModule)
+            if (null == leftModule)
 				return;
 
 			HtmlNode topHeadline = leftModule.SelectSingleNode(".//h4[contains(@class, 'heading')]//a");
 			HtmlNode topBlurb = leftModule.SelectSingleNode(".//p[contains(@class, 'standfirst')]");
 			HtmlNodeCollection otherHeadlines = leftModule.SelectNodes(".//ul[contains(@class, 'related')]//a");
 
-			HtmlNode rightModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-multi-promo-money')]//div[contains(@class, 'module-content')]");
-			HtmlNodeCollection rightHeadlines = rightModule.SelectNodes(".//h4[contains(@class, 'heading')]//a");
-			HtmlNodeCollection rightBlurbs = rightModule.SelectNodes(".//div[contains(@class, 'promo-text')]//p");
+            HtmlNode rightModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-multi-promo-money')]//div[contains(@class, 'module-content')]");
+            HtmlNodeCollection rightHeadlines = null;
+            HtmlNodeCollection rightBlurbs = null;
+
+            if (null != rightModule) {
+                rightHeadlines = rightModule.SelectNodes(".//h4[contains(@class, 'heading')]//a");
+                rightBlurbs = rightModule.SelectNodes(".//div[contains(@class, 'promo-text')]//p");
+            }
 
 			int contentIndex;
 			if ((otherHeadlinesList.Count > 0) && (null != topHeadline)) {
@@ -491,8 +541,14 @@ namespace FakeNews
 		private void Technology()
 		{
 			//nothing but iphones and facebook!
-			HtmlNode leftModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-plmt-tech-top-stories')]//div[contains(@class, 'module-content')]");
-			HtmlNode rightModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-industry-news-from-australianit')]//div[contains(@class, 'module-content')]");
+			HtmlNode leftModule =
+				index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-plmt-tech-top-stories')]//div[contains(@class, 'module-content')]")
+				?? index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-technology')]//div[contains(@class, 'module-content')]")
+				;
+			
+			HtmlNode rightModule = null;
+			rightModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-industry-news-from-australianit')]//div[contains(@class, 'module-content')]");
+
 			HtmlNode topHeadlineLeft = null;
 			HtmlNode topBlurbLeft = null;
 			HtmlNodeCollection otherHeadlinesLeft = null;
@@ -513,8 +569,11 @@ namespace FakeNews
 				otherHeadlinesRight = rightModule.SelectNodes(".//ul[contains(@class, 'related')]//a");
 			}
 			iPhoneFacebookHeadline = GetiPhoneFacebook(38,2);
-			if ((null != otherHeadlinesLeft) && (null != otherHeadlinesRight))
-				iPhoneFacebookOther = GetiPhoneFacebook(45, otherHeadlinesLeft.Count + otherHeadlinesRight.Count);
+
+			int otherHeadlinesLeftCount = (null != otherHeadlinesLeft) ? otherHeadlinesLeft.Count : 0;
+			int otherHeadlinesRightCount = (null != otherHeadlinesRight) ? otherHeadlinesRight.Count : 0;
+			iPhoneFacebookOther = GetiPhoneFacebook(45, otherHeadlinesLeftCount + otherHeadlinesRightCount);
+			
 			if (null != topHeadlineLeft)
 				topHeadlineLeft.InnerHtml = iPhoneFacebookHeadline[0];
 			if (null != topHeadlineRight)
@@ -531,7 +590,7 @@ namespace FakeNews
 			if ((null != otherHeadlinesLeft) && (null != otherHeadlinesRight))
 				for (int i = 0; i < otherHeadlinesRight.Count; i++)
 					if (i < iPhoneFacebookOther.Count)
-						otherHeadlinesRight[i].InnerHtml = iPhoneFacebookOther[i + otherHeadlinesLeft.Count];
+						otherHeadlinesRight[i].InnerHtml = iPhoneFacebookOther[i + otherHeadlinesLeftCount];
 		}
 
 		//this surprisingly complex function provides:
@@ -594,6 +653,11 @@ namespace FakeNews
 			RemoveSection("text-g-world");
 			RemoveSection("text-m-world");
 		}
+
+        private void SighFacebook()
+        {
+            RemoveSection("fb_recommendations");
+        }
 
 		IList<Person> nameList = new List<Person> {
 				new Person { Name = "Madonna", Gender = Gender.Female },
