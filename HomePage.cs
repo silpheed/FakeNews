@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Web;
 using HtmlAgilityPack;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FakeNews
 {
@@ -22,6 +24,7 @@ namespace FakeNews
 			MainColumn();	//done
 			SocialLinks();  //done
 			BreakingNews();	//done
+			MainVideo();	//done
 			SideBar();		//done
 			MostPopular();	//done
 			PictureRow();		//done
@@ -59,11 +62,11 @@ namespace FakeNews
 			}
 		}
 
-		//swap the header image for the fake one, add my twitters
+		//swap the header image for the fake one, add the source
 		private void Header()
 		{
 			HtmlNode link = index.CreateElement("a");
-			link.SetAttributeValue("href", "http://twitter.com/silpeen");
+			link.SetAttributeValue("href", "https://github.com/silpheed/FakeNews");
 			HtmlNode headerLogo = index.GetElementbyId("header-logo");
 			headerLogo.SetAttributeValue("style", @"background-image: url('/res/fakenews.png');");
 			headerLogo.ParentNode.ReplaceChild(link, headerLogo);
@@ -133,7 +136,7 @@ namespace FakeNews
 				return;
 			
 			HtmlNodeCollection headlines = module.SelectNodes(".//h4[contains(@class, 'heading')]//a");
-			HtmlNodeCollection blurbs = module.SelectNodes(".//div[contains(@class, 'story-block')]//p[contains(@class, 'standfirst')]");
+			HtmlNodeCollection blurbs = module.SelectNodes(".//div[contains(@class, 'story-block')]//p");
 			HtmlNodeCollection otherHeadlines = module.SelectNodes(".//ul[contains(@class, 'related')]//a");
 
 			int contentIndex;
@@ -186,6 +189,9 @@ namespace FakeNews
 			RemoveSection("text-m-opinion-from-the-punch");
 			RemoveSection("text-m-find");
 			RemoveSection("text-m-more");
+			RemoveSection("multimedia-promo");
+			RemoveSection("body-soul-feed");
+			RemoveSection("fb_likebox");
 		}
 
 		private void BreakingNews()
@@ -206,6 +212,11 @@ namespace FakeNews
 					item.InnerHtml = PrepareContent(breakingNewsMostPopularList[contentIndex]);
 					breakingNewsMostPopularList.RemoveAt(contentIndex);
 				}
+		}
+
+		private void MainVideo()
+		{
+			RemoveSection("video-embed");
 		}
 
 		private void MostPopular()
