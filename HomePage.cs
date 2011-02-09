@@ -506,11 +506,11 @@ namespace FakeNews
 
             HtmlNode rightModule = index.DocumentNode.SelectSingleNode("//div[contains(@class, 'text-m-news-home-multi-promo-money')]//div[contains(@class, 'module-content')]");
             HtmlNodeCollection rightHeadlines = null;
-            HtmlNodeCollection rightBlurbs = null;
+            HtmlNode rightBlurb = null;
 
             if (null != rightModule) {
                 rightHeadlines = rightModule.SelectNodes(".//h4[contains(@class, 'heading')]//a");
-                rightBlurbs = rightModule.SelectNodes(".//div[contains(@class, 'promo-text')]//p");
+                rightBlurb = rightModule.SelectSingleNode(".//div[contains(@class, 'promo-text')]//p");
             }
 
 			int contentIndex;
@@ -540,14 +540,11 @@ namespace FakeNews
 					item.InnerHtml = headlinesList[contentIndex];
 					headlinesList.RemoveAt(contentIndex);
 				}
-			if (null != rightBlurbs)
-				foreach (HtmlNode item in rightBlurbs) {
-					if (blurbList.Count == 0)
-						continue;
-					contentIndex = rng.Next() % blurbList.Count;
-					item.InnerHtml = blurbList[contentIndex];
-					blurbList.RemoveAt(contentIndex);
-				}
+			if ((blurbList.Count > 0) && (null != rightBlurb)) {
+				contentIndex = rng.Next() % blurbList.Count;
+				rightBlurb.InnerHtml = blurbList[contentIndex];
+				blurbList.RemoveAt(contentIndex);
+			}
 		}
         
 		private void Technology()
