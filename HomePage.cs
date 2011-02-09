@@ -137,7 +137,7 @@ namespace FakeNews
 				return;
 			
 			HtmlNodeCollection headlines = module.SelectNodes(".//h4[contains(@class, 'heading')]//a");
-			HtmlNodeCollection blurbs = module.SelectNodes(".//div[contains(@class, 'story-block')]//p");
+			HtmlNodeCollection blurbs = module.SelectNodes(".//div[contains(@class, 'story-block')]//p[contains(@class, 'standfirst')]");
 			HtmlNodeCollection otherHeadlines = module.SelectNodes(".//ul[contains(@class, 'related')]//a");
 
 			int contentIndex;
