@@ -37,7 +37,8 @@ namespace FakeNews
 			Entertainment();	//done
 			Travel();		//done
 			Technology();	//done
-            SighFacebook();  //done
+			Opinion();		//done
+            SighFacebook();	//done
 			using (MemoryStream resultStream = new MemoryStream()) {
 				index.Save(resultStream);
 				resultStream.Position = 0;
@@ -663,6 +664,11 @@ namespace FakeNews
 		{
 			RemoveSection("text-g-world");
 			RemoveSection("text-m-world");
+		}
+
+		private void Opinion()
+		{
+			RemoveSection("text-g-opinion");
 		}
 
         private void SighFacebook()
